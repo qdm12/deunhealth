@@ -33,18 +33,12 @@ nohealthMarkedID="$(docker run -d $restartOnUnhealthyLabel alpine:3.14)"
 healthyMarkedID="$(docker run -d --init $restartOnUnhealthyLabel --health-cmd='exit 0' $healthFlags alpine:3.14 sleep 30)"
 unhealthyMarkedID="$(docker run -d --init $restartOnUnhealthyLabel --health-cmd='exit 1' $healthFlags alpine:3.14 sleep 30)"
 
-nohealthName="$(docker inspect -f '{{ .Name }}' $nohealthID)"
-nohealthName=${nohealthName:1}
-healthyName="$(docker inspect -f '{{ .Name }}' $healthyID)"
-healthyName=${healthyName:1}
-unhealthyName="$(docker inspect -f '{{ .Name }}' $unhealthyID)"
-unhealthyName=${unhealthyName:1}
-nohealthMarkedName="$(docker inspect -f '{{ .Name }}' $nohealthMarkedID)"
-nohealthMarkedName=${nohealthMarkedName:1}
-healthyMarkedName="$(docker inspect -f '{{ .Name }}' $healthyMarkedID)"
-healthyMarkedName=${healthyMarkedName:1}
-unhealthyMarkedName="$(docker inspect -f '{{ .Name }}' $unhealthyMarkedID)"
-unhealthyMarkedName=${unhealthyMarkedName:1}
+nohealthName="$(docker inspect -f '{{ .Name }}' $nohealthID | sed -r 's/^\///')"
+healthyName="$(docker inspect -f '{{ .Name }}' $healthyID | sed -r 's/^\///')"
+unhealthyName="$(docker inspect -f '{{ .Name }}' $unhealthyID | sed -r 's/^\///')"
+nohealthMarkedName="$(docker inspect -f '{{ .Name }}' $nohealthMarkedID | sed -r 's/^\///')"
+healthyMarkedName="$(docker inspect -f '{{ .Name }}' $healthyMarkedID | sed -r 's/^\///')"
+unhealthyMarkedName="$(docker inspect -f '{{ .Name }}' $unhealthyMarkedID | sed -r 's/^\///')"
 
 echo "launching deunhealth"
 
