@@ -11,6 +11,7 @@ on:
       - Dockerfile
       - go.mod
       - go.sum
+      - integration_test.sh
   pull_request:
     paths:
       - .github/workflows/ci.yml
@@ -22,6 +23,7 @@ on:
       - Dockerfile
       - go.mod
       - go.sum
+      - integration_test.sh
 
 jobs:
   verify:
