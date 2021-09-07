@@ -1,6 +1,6 @@
 module github.com/qdm12/deunhealth
 
-go 1.16
+go 1.17
 
 require (
 	github.com/containerd/containerd v1.5.5 // indirect
@@ -15,4 +15,23 @@ require (
 	github.com/qdm12/gosplash v0.1.0
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	google.golang.org/grpc v1.40.0 // indirect
+)
+
+require (
+	github.com/Microsoft/go-winio v0.4.17 // indirect
+	github.com/docker/distribution v2.7.1+incompatible // indirect
+	github.com/docker/go-units v0.4.0 // indirect
+	github.com/fatih/color v1.12.0 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang/protobuf v1.5.0 // indirect
+	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
+	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
+	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
 )
