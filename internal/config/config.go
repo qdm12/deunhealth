@@ -10,19 +10,26 @@ import (
 )
 
 type Config struct {
+	Docker Docker
 	Log    Log
 	Health Health
 }
 
 var (
+	ErrDockerConfig = errors.New("cannot obtain docker config")
 	ErrLogConfig    = errors.New("cannot obtain log config")
 	ErrHealthConfig = errors.New("cannot obtain health config")
 )
 
 func (c *Config) get(env params.Env) (warnings []string, err error) {
+	err = c.Docker.get(env)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrDockerConfig, err)
+	}
+
 	err = c.Log.get(env)
 	if err != nil {
-		return warnings, fmt.Errorf("%w: %s", ErrLogConfig, err)
+		return nil, fmt.Errorf("%w: %s", ErrLogConfig, err)
 	}
 
 	warning, err := c.Health.get(env)

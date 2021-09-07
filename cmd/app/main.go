@@ -115,7 +115,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 
 	logger = logger.NewChild(logging.Settings{Level: config.Log.Level})
 
-	docker, err := docker.New()
+	docker, err := docker.New(config.Docker.Host)
 	if err != nil {
 		return err
 	}

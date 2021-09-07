@@ -23,8 +23,8 @@ var (
 	ErrCreateDockerClient = errors.New("cannot create Docker client")
 )
 
-func New() (d *Docker, err error) {
-	client, err := client.NewClientWithOpts()
+func New(dockerHost string) (d *Docker, err error) {
+	client, err := client.NewClientWithOpts(client.WithHost(dockerHost))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrCreateDockerClient, err)
 	}
