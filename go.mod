@@ -14,5 +14,5 @@ require (
 	github.com/qdm12/goshutdown v0.1.0
 	github.com/qdm12/gosplash v0.1.0
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
-	google.golang.org/grpc v1.39.0 // indirect
+	google.golang.org/grpc v1.40.0 // indirect
 )
