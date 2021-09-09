@@ -13,6 +13,7 @@ type Dockerer interface {
 	UnhealthyGetter
 	UnhealthyStreamer
 	ContainerRestarter
+	LabeledGetter
 }
 
 type Docker struct {
