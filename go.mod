@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v20.10.8+incompatible
 	github.com/moby/moby v20.10.8+incompatible
 	github.com/qdm12/golibs v0.0.0-20210723175634-a75ca7fd74c2
-	github.com/qdm12/goshutdown v0.1.0
+	github.com/qdm12/goshutdown v0.2.0
 	github.com/qdm12/gosplash v0.1.0
 )
 
