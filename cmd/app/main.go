@@ -127,6 +127,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 		defer close(looperDone)
 		if err := looper.Run(looperCtx); err != nil {
 			logger.Error(err.Error())
+			cancel()
 		}
 	}()
 
