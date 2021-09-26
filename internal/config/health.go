@@ -8,7 +8,7 @@ type Health struct {
 	Address string
 }
 
-func (h *Health) get(env params.Env) (warning string, err error) {
+func (h *Health) get(env params.Interface) (warning string, err error) {
 	h.Address, warning, err = h.getAddress(env)
 	if err != nil {
 		return warning, err
@@ -16,7 +16,7 @@ func (h *Health) get(env params.Env) (warning string, err error) {
 	return warning, nil
 }
 
-func (h *Health) getAddress(env params.Env) (address, warning string, err error) {
+func (h *Health) getAddress(env params.Interface) (address, warning string, err error) {
 	const key = "HEALTH_SERVER_ADDRESS"
 	options := []params.OptionSetter{
 		params.Default("127.0.0.1:9999"),

@@ -10,12 +10,12 @@ type ConfReader interface {
 }
 
 type Reader struct {
-	env params.Env
+	env params.Interface
 }
 
 func NewReader() *Reader {
 	return &Reader{
-		env: params.NewEnv(),
+		env: params.New(),
 	}
 }
 

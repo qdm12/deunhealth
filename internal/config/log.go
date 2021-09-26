@@ -9,7 +9,7 @@ type Log struct {
 	Level logging.Level
 }
 
-func (l *Log) get(env params.Env) (err error) {
+func (l *Log) get(env params.Interface) (err error) {
 	l.Level, err = l.getLevel(env)
 	if err != nil {
 		return err
@@ -17,7 +17,7 @@ func (l *Log) get(env params.Env) (err error) {
 	return nil
 }
 
-func (l *Log) getLevel(env params.Env) (level logging.Level, err error) {
+func (l *Log) getLevel(env params.Interface) (level logging.Level, err error) {
 	const envKey = "LOG_LEVEL"
 	options := []params.OptionSetter{
 		params.Default("info"),

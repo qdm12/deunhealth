@@ -5,8 +5,8 @@ go 1.17
 require (
 	github.com/docker/docker v20.10.8+incompatible
 	github.com/moby/moby v20.10.8+incompatible
-	github.com/qdm12/golibs v0.0.0-20210723175634-a75ca7fd74c2
-	github.com/qdm12/goshutdown v0.1.0
+	github.com/qdm12/golibs v0.0.0-20210915134941-19815c6f95fe
+	github.com/qdm12/goshutdown v0.2.0
 	github.com/qdm12/gosplash v0.1.0
 )
 
@@ -32,6 +32,6 @@ require (
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a // indirect
-	google.golang.org/grpc v1.40.0 // indirect
+	google.golang.org/grpc v1.41.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 )

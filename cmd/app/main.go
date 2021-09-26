@@ -39,7 +39,7 @@ func main() {
 
 	args := os.Args
 
-	logger := logging.NewParent(logging.Settings{})
+	logger := logging.New(logging.Settings{})
 
 	configReader := config.NewReader()
 

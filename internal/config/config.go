@@ -21,7 +21,7 @@ var (
 	ErrHealthConfig = errors.New("cannot obtain health config")
 )
 
-func (c *Config) get(env params.Env) (warnings []string, err error) {
+func (c *Config) get(env params.Interface) (warnings []string, err error) {
 	err = c.Docker.get(env)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrDockerConfig, err)
