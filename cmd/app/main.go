@@ -127,6 +127,8 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 		return err
 	}
 
+	docker.NegotiateVersion(ctx)
+
 	looper := loop.New(docker, logger)
 	looperHandler, looperCtx, looperDone := goshutdown.NewGoRoutineHandler("loop")
 	go func() {
