@@ -41,7 +41,7 @@ func main() {
 
 	logger := logging.New(logging.Settings{})
 
-	configReader := config.NewReader()
+	configReader := config.New()
 
 	errorCh := make(chan error)
 	go func() {
@@ -69,7 +69,7 @@ func main() {
 }
 
 func _main(ctx context.Context, buildInfo models.BuildInformation,
-	args []string, logger logging.ParentLogger, configReader config.ConfReader) error {
+	args []string, logger logging.ParentLogger, configReader config.Interface) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if health.IsClientMode(args) {
@@ -78,12 +78,12 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 		// long running instance of the program about its status
 		client := health.NewClient()
 
-		config, err := configReader.ReadHealth()
+		settings, err := configReader.Read()
 		if err != nil {
 			return err
 		}
 
-		return client.Query(ctx, config.Address)
+		return client.Query(ctx, settings.Health.Address)
 	}
 
 	announcementExpiration, err := time.Parse("2006-01-02", "2021-07-14")
@@ -105,17 +105,24 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	})
 	fmt.Println(strings.Join(splashLines, "\n"))
 
-	config, warnings, err := configReader.ReadConfig()
-	for _, warning := range warnings {
-		logger.Warn(warning)
-	}
+	settings, err := configReader.Read()
 	if err != nil {
 		return err
 	}
 
-	logger = logger.NewChild(logging.Settings{Level: config.Log.Level})
+	logLevel := logging.LevelInfo
+	switch settings.Log.Level {
+	case "debug":
+		logLevel = logging.LevelDebug
+	case "warn":
+		logLevel = logging.LevelWarn
+	case "error":
+		logLevel = logging.LevelError
+	}
 
-	docker, err := docker.New(config.Docker.Host)
+	logger = logger.NewChild(logging.Settings{Level: logLevel})
+
+	docker, err := docker.New(settings.Docker.Host)
 	if err != nil {
 		return err
 	}
@@ -132,7 +139,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 
 	healthcheck := func() error { return nil }
 	heathcheckLogger := logger.NewChild(logging.Settings{Prefix: "healthcheck: "})
-	healthServer := health.NewServer(config.Health.Address, heathcheckLogger, healthcheck)
+	healthServer := health.NewServer(settings.Health.Address, heathcheckLogger, healthcheck)
 	healthServerHandler, healthServerCtx, healthServerDone := goshutdown.NewGoRoutineHandler("health")
 	go func() {
 		defer close(healthServerDone)

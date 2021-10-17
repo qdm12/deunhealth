@@ -1,33 +1,49 @@
 package config
 
 import (
-	"github.com/qdm12/golibs/params"
+	"errors"
+	"fmt"
+
+	"github.com/qdm12/deunhealth/internal/config/env"
+	"github.com/qdm12/deunhealth/internal/config/settings"
+	"github.com/qdm12/govalid"
 )
 
-type ConfReader interface {
-	ReadConfig() (c Config, warnings []string, err error)
-	ReadHealth() (h Health, err error)
+var _ Interface = (*env.Reader)(nil)
+
+type Interface interface {
+	Read() (s settings.Settings, err error)
 }
 
 type Reader struct {
-	env params.Interface
+	env       Interface
+	validator govalid.Interface
 }
 
-func NewReader() *Reader {
+func New() *Reader {
 	return &Reader{
-		env: params.New(),
+		env:       env.New(),
+		validator: govalid.New(),
 	}
 }
 
-// ReadConfig reads all the configuration and returns it.
-func (r *Reader) ReadConfig() (c Config, warnings []string, err error) {
-	warnings, err = c.get(r.env)
-	return c, warnings, err
-}
+var (
+	ErrReadingEnv = errors.New("error reading environment variables")
+	ErrValidation = errors.New("error validating settings")
+)
 
-// ReadHealth is used for the healthcheck query only.
-func (r *Reader) ReadHealth() (h Health, err error) {
-	// warning is ignored when reading in healthcheck client query mode.
-	_, err = h.get(r.env)
-	return h, err
+func (r *Reader) Read() (s settings.Settings, err error) {
+	s, err = r.env.Read()
+	if err != nil {
+		return s, fmt.Errorf("%w: %s", ErrReadingEnv, err)
+	}
+
+	s.SetDefaults()
+
+	err = s.Validate(r.validator)
+	if err != nil {
+		return s, fmt.Errorf("%w: %s", ErrValidation, err)
+	}
+
+	return s, nil
 }
