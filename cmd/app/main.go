@@ -121,8 +121,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	}
 
 	looper := loop.New(docker, logger)
-	looperHandler, looperCtx, looperDone := goshutdown.NewGoRoutineHandler(
-		"loop", goshutdown.GoRoutineSettings{})
+	looperHandler, looperCtx, looperDone := goshutdown.NewGoRoutineHandler("loop")
 	go func() {
 		defer close(looperDone)
 		if err := looper.Run(looperCtx); err != nil {
@@ -134,8 +133,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	healthcheck := func() error { return nil }
 	heathcheckLogger := logger.NewChild(logging.Settings{Prefix: "healthcheck: "})
 	healthServer := health.NewServer(config.Health.Address, heathcheckLogger, healthcheck)
-	healthServerHandler, healthServerCtx, healthServerDone := goshutdown.NewGoRoutineHandler(
-		"health", goshutdown.GoRoutineSettings{})
+	healthServerHandler, healthServerCtx, healthServerDone := goshutdown.NewGoRoutineHandler("health")
 	go func() {
 		defer close(healthServerDone)
 		if err := healthServer.Run(healthServerCtx); err != nil {
@@ -143,7 +141,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 		}
 	}()
 
-	group := goshutdown.NewGroupHandler("group", goshutdown.GroupSettings{})
+	group := goshutdown.NewGroupHandler("group")
 	group.Add(looperHandler, healthServerHandler)
 
 	<-ctx.Done()
