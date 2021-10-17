@@ -3,7 +3,7 @@ module github.com/qdm12/deunhealth
 go 1.17
 
 require (
-	github.com/docker/docker v20.10.8+incompatible
+	github.com/docker/docker v20.10.9+incompatible
 	github.com/moby/moby v20.10.8+incompatible
 	github.com/qdm12/golibs v0.0.0-20210915134941-19815c6f95fe
 	github.com/qdm12/goshutdown v0.3.0
