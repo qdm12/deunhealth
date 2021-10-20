@@ -2,6 +2,8 @@ package docker
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -11,6 +13,8 @@ type LabeledGetter interface {
 	GetLabeled(ctx context.Context, labels []string) (
 		containerNames []string, err error)
 }
+
+var ErrListContainers = errors.New("cannot list containers")
 
 func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
 	containerNames []string, err error) {
@@ -25,7 +29,7 @@ func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", ErrListContainers, err)
 	}
 
 	containerNames = make([]string, len(containers))
