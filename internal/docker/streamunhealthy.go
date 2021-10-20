@@ -52,7 +52,10 @@ func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Unhealt
 				unhealthy.Name = message.Actor.ID
 			}
 
-			unhealthies <- unhealthy
+			select {
+			case unhealthies <- unhealthy:
+			case <-ctx.Done(): // do not block
+			}
 		}
 	}
 }
