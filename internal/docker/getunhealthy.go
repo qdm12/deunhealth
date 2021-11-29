@@ -8,10 +8,10 @@ import (
 )
 
 type UnhealthyGetter interface {
-	GetUnhealthy(ctx context.Context) (unhealthies []UnhealthyContainer, err error)
+	GetUnhealthy(ctx context.Context) (unhealthies []Container, err error)
 }
 
-func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []UnhealthyContainer, err error) {
+func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []Container, err error) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	filtersArgs.Add("label", "deunhealth.restart.on.unhealthy=true")
@@ -25,7 +25,7 @@ func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []UnhealthyConta
 		return nil, err
 	}
 
-	unhealthies = make([]UnhealthyContainer, len(containers))
+	unhealthies = make([]Container, len(containers))
 
 	for i, container := range containers {
 		name := container.ID
@@ -33,7 +33,8 @@ func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []UnhealthyConta
 			name = container.Names[0]
 		}
 
-		unhealthies[i] = UnhealthyContainer{
+		unhealthies[i] = Container{
+			ID:    container.ID,
 			Name:  name,
 			Image: container.Image,
 		}

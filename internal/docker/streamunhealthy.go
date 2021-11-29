@@ -8,15 +8,10 @@ import (
 )
 
 type UnhealthyStreamer interface {
-	StreamUnhealthy(ctx context.Context, unhealthies chan<- UnhealthyContainer, crashed chan<- error)
+	StreamUnhealthy(ctx context.Context, unhealthies chan<- Container, crashed chan<- error)
 }
 
-type UnhealthyContainer struct {
-	Name  string
-	Image string
-}
-
-func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- UnhealthyContainer, crashed chan<- error) {
+func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Container, crashed chan<- error) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	filtersArgs.Add("label", "deunhealth.restart.on.unhealthy=true")
@@ -43,7 +38,8 @@ func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Unhealt
 				break
 			}
 
-			unhealthy := UnhealthyContainer{
+			unhealthy := Container{
+				ID:    message.Actor.ID,
 				Name:  message.Actor.Attributes["name"],
 				Image: message.Actor.Attributes["image"],
 			}

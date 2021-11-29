@@ -30,7 +30,7 @@ func (l *Loop) Run(ctx context.Context) (err error) {
 		l.restartUnhealthy(ctx, unhealthy)
 	}
 
-	unhealthies := make(chan docker.UnhealthyContainer)
+	unhealthies := make(chan docker.Container)
 	unhealthyStreamCrashed := make(chan error)
 
 	go l.docker.StreamUnhealthy(ctx, unhealthies, unhealthyStreamCrashed)
@@ -56,7 +56,7 @@ func (l *Loop) Run(ctx context.Context) (err error) {
 	}
 }
 
-func (l *Loop) restartUnhealthy(ctx context.Context, unhealthy docker.UnhealthyContainer) {
+func (l *Loop) restartUnhealthy(ctx context.Context, unhealthy docker.Container) {
 	l.logger.Info("container " + unhealthy.Name +
 		" (image " + unhealthy.Image + ") is unhealthy, restarting it...")
 	err := l.docker.RestartContainer(ctx, unhealthy.Name)
