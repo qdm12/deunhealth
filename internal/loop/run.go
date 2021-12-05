@@ -2,7 +2,6 @@ package loop
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/qdm12/deunhealth/internal/docker"
 )
@@ -19,7 +18,8 @@ func (l *Loop) Run(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	l.logger.Info("Monitoring " + fmt.Sprint(len(names)) + " containers to restart when becoming unhealthy")
+	l.logger.Info("Monitoring containers " + buildEnum(names) + " to restart when becoming unhealthy")
+
 	l.logger.Info("New labeled containers will be automatically detected")
 
 	existingUnhealthies, err := l.docker.GetUnhealthy(ctx)
