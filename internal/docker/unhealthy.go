@@ -28,14 +28,9 @@ func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []Container, err
 	unhealthies = make([]Container, len(containers))
 
 	for i, container := range containers {
-		name := container.ID
-		if len(container.Names) > 0 && container.Names[0] != "" {
-			name = container.Names[0]
-		}
-
 		unhealthies[i] = Container{
 			ID:    container.ID,
-			Name:  name,
+			Name:  extractName(container),
 			Image: container.Image,
 		}
 	}

@@ -35,10 +35,7 @@ func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
 	containerNames = make([]string, len(containers))
 
 	for i, container := range containers {
-		containerNames[i] = container.ID
-		if len(container.Names) > 0 && container.Names[0] != "" {
-			containerNames[i] = container.Names[0]
-		}
+		containerNames[i] = extractName(container)
 	}
 
 	return containerNames, nil
