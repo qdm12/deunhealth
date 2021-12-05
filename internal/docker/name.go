@@ -1,6 +1,9 @@
 package docker
 
-import "github.com/docker/docker/api/types"
+import (
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/events"
+)
 
 func extractName(container types.Container) (name string) {
 	name = container.ID
@@ -10,5 +13,14 @@ func extractName(container types.Container) (name string) {
 			break
 		}
 	}
+	return name
+}
+
+func extractNameFromActor(actor events.Actor) (name string) {
+	name = actor.ID
+	if actor.Attributes["name"] != "" {
+		name = actor.Attributes["name"]
+	}
+
 	return name
 }

@@ -71,12 +71,8 @@ func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Contain
 
 			unhealthy := Container{
 				ID:    message.Actor.ID,
-				Name:  message.Actor.Attributes["name"],
+				Name:  extractNameFromActor(message.Actor),
 				Image: message.Actor.Attributes["image"],
-			}
-
-			if unhealthy.Name == "" {
-				unhealthy.Name = message.Actor.ID
 			}
 
 			select {
