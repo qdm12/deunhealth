@@ -10,13 +10,11 @@ type Looper interface {
 }
 
 type Loop struct {
-	docker docker.Dockerer
-	logger logging.Logger
+	unhealthy Runner
 }
 
 func New(docker docker.Dockerer, logger logging.Logger) *Loop {
 	return &Loop{
-		docker: docker,
-		logger: logger,
+		unhealthy: newUnhealthyLoop(docker, logger),
 	}
 }
