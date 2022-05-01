@@ -1,6 +1,4 @@
 linters-settings:
-  maligned:
-    suggest-new: true
   misspell:
     locale: US
 
@@ -21,16 +19,21 @@ issues:
         - gochecknoglobals
 
 linters:
-  disable-all: true
   enable:
     - asciicheck
+    - bidichk
     - bodyclose
-    - deadcode
+    - containedctx
+    - decorder
     - dogsled
     - dupl
+    - durationcheck
     - errcheck
+    - errchkjson
+    - errname
     - exhaustive
     - exportloopref
+    - forcetypeassert
     - gci
     - gochecknoglobals
     - gochecknoinits
@@ -43,39 +46,37 @@ linters:
     - goheader
     - goimports
     - gomnd
+    - gomoddirectives
     - goprintffuncname
     - gosec
-    - gosimple
-    - govet
+    - grouper
     - importas
-    - ineffassign
     - lll
+    - maintidx
     - makezero
-    - maligned
     - misspell
     - nakedret
     - nestif
     - nilerr
+    - nilnil
     - noctx
     - nolintlint
     - prealloc
     - predeclared
+    - predeclared
+    - promlinter
     - revive
     - rowserrcheck
     - sqlclosecheck
-    - staticcheck
-    - structcheck
+    - tenv
     - thelper
     - tparallel
-    - typecheck
     - unconvert
     - unparam
-    - unused
-    - varcheck
+    - wastedassign
     - whitespace
 
 run:
   skip-dirs:
     - .devcontainer
     - .github
-    - postgres
