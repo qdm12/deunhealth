@@ -26,12 +26,12 @@ restartOnUnhealthyLabel="--label deunhealth.restart.on.unhealthy=true"
 
 echo "launching test containers"
 
-nohealthID="$(docker run -d --init alpine:3.14 sleep 30)"
-healthyID="$(docker run -d --init --health-cmd='exit 0' $healthFlags alpine:3.14 sleep 30)"
-unhealthyID="$(docker run -d --init --health-cmd='exit 1' $healthFlags alpine:3.14 sleep 30)"
-nohealthMarkedID="$(docker run -d $restartOnUnhealthyLabel alpine:3.14)"
-healthyMarkedID="$(docker run -d --init $restartOnUnhealthyLabel --health-cmd='exit 0' $healthFlags alpine:3.14 sleep 30)"
-unhealthyMarkedID="$(docker run -d --init $restartOnUnhealthyLabel --health-cmd='exit 1' $healthFlags alpine:3.14 sleep 30)"
+nohealthID="$(docker run -d --init alpine:3.15 sleep 30)"
+healthyID="$(docker run -d --init --health-cmd='exit 0' $healthFlags alpine:3.15 sleep 30)"
+unhealthyID="$(docker run -d --init --health-cmd='exit 1' $healthFlags alpine:3.15 sleep 30)"
+nohealthMarkedID="$(docker run -d $restartOnUnhealthyLabel alpine:3.15)"
+healthyMarkedID="$(docker run -d --init $restartOnUnhealthyLabel --health-cmd='exit 0' $healthFlags alpine:3.15 sleep 30)"
+unhealthyMarkedID="$(docker run -d --init $restartOnUnhealthyLabel --health-cmd='exit 1' $healthFlags alpine:3.15 sleep 30)"
 
 nohealthName="$(docker inspect -f '{{ .Name }}' $nohealthID | sed -r 's/^\///')"
 healthyName="$(docker inspect -f '{{ .Name }}' $healthyID | sed -r 's/^\///')"
