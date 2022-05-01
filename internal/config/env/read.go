@@ -7,6 +7,11 @@ import (
 func (r *Reader) Read() (s settings.Settings, err error) {
 	s.Docker = r.readDocker()
 	s.Health = r.readHealth()
-	s.Log = r.readLog()
+
+	s.Log, err = r.readLog()
+	if err != nil {
+		return s, err
+	}
+
 	return s, nil
 }

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/qdm12/golibs/logging"
 )
 
 type ServerRunner interface {
@@ -16,15 +14,19 @@ type ServerRunner interface {
 
 type Server struct {
 	address string
-	logger  logging.Logger
+	infoer  Infoer
 	handler http.Handler
 }
 
-func NewServer(address string, logger logging.Logger, healthcheck func() error) *Server {
-	handler := newHandler(logger, healthcheck)
+type Infoer interface {
+	Info(s string)
+}
+
+func NewServer(address string, infoer Infoer, healthcheck func() error) *Server {
+	handler := newHandler(healthcheck)
 	return &Server{
 		address: address,
-		logger:  logger,
+		infoer:  infoer,
 		handler: handler,
 	}
 }
@@ -45,7 +47,7 @@ func (s *Server) Run(ctx context.Context) error {
 		shutdownErrCh <- server.Shutdown(shutdownCtx)
 	}()
 
-	s.logger.Info("listening on " + s.address)
+	s.infoer.Info("listening on " + s.address)
 	err := server.ListenAndServe()
 	if err != nil && !errors.Is(ctx.Err(), context.Canceled) { // server crashed
 		return fmt.Errorf("%w: %s", ErrCrashed, err)

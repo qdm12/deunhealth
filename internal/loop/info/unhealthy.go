@@ -5,18 +5,21 @@ import (
 
 	"github.com/qdm12/deunhealth/internal/docker"
 	"github.com/qdm12/deunhealth/internal/loop/helpers"
-	"github.com/qdm12/golibs/logging"
 )
 
-func NewUnhealthyLoop(docker docker.Dockerer, logger logging.Logger) *UnhealthyLoop {
+func NewUnhealthyLoop(docker docker.Dockerer, infoer Infoer) *UnhealthyLoop {
 	return &UnhealthyLoop{
 		docker: docker,
-		logger: logger,
+		infoer: infoer,
 	}
 }
 
+type Infoer interface {
+	Info(s string)
+}
+
 type UnhealthyLoop struct {
-	logger logging.Logger
+	infoer Infoer
 	docker docker.Dockerer
 }
 
@@ -29,7 +32,7 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	l.logger.Info("Monitoring containers " + helpers.BuildEnum(onUnhealthyNames) + " to restart when becoming unhealthy")
+	l.infoer.Info("Monitoring containers " + helpers.BuildEnum(onUnhealthyNames) + " to restart when becoming unhealthy")
 
 	healthMonitored := make(chan string)
 	healthStreamCrashed := make(chan error)
@@ -52,7 +55,7 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 			return err
 
 		case healthMonitorName := <-healthMonitored:
-			l.logger.Info("Monitoring new container " + healthMonitorName + " to restart when becoming unhealthy")
+			l.infoer.Info("Monitoring new container " + healthMonitorName + " to restart when becoming unhealthy")
 		}
 	}
 }

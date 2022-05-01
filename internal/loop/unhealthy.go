@@ -5,10 +5,10 @@ import (
 
 	"github.com/qdm12/deunhealth/internal/docker"
 	"github.com/qdm12/deunhealth/internal/loop/info"
-	"github.com/qdm12/golibs/logging"
+	"github.com/qdm12/log"
 )
 
-func newUnhealthyLoop(docker docker.Dockerer, logger logging.Logger) *unhealthyLoop {
+func newUnhealthyLoop(docker docker.Dockerer, logger log.LeveledLogger) *unhealthyLoop {
 	return &unhealthyLoop{
 		docker: docker,
 		logger: logger,
@@ -17,7 +17,7 @@ func newUnhealthyLoop(docker docker.Dockerer, logger logging.Logger) *unhealthyL
 }
 
 type unhealthyLoop struct {
-	logger logging.Logger
+	logger log.LeveledLogger
 	docker docker.Dockerer
 	info   Runner
 }

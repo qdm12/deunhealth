@@ -15,9 +15,9 @@ import (
 	"github.com/qdm12/deunhealth/internal/health"
 	"github.com/qdm12/deunhealth/internal/loop"
 	"github.com/qdm12/deunhealth/internal/models"
-	"github.com/qdm12/golibs/logging"
 	"github.com/qdm12/goshutdown"
 	"github.com/qdm12/gosplash"
+	"github.com/qdm12/log"
 )
 
 var (
@@ -39,7 +39,7 @@ func main() {
 
 	args := os.Args
 
-	logger := logging.New(logging.Settings{})
+	logger := log.New()
 
 	configReader := config.New()
 
@@ -69,7 +69,7 @@ func main() {
 }
 
 func _main(ctx context.Context, buildInfo models.BuildInformation,
-	args []string, logger logging.ParentLogger, configReader config.Interface) error {
+	args []string, logger log.LoggerInterface, configReader config.Interface) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if health.IsClientMode(args) {
@@ -110,17 +110,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 		return err
 	}
 
-	logLevel := logging.LevelInfo
-	switch settings.Log.Level {
-	case "debug":
-		logLevel = logging.LevelDebug
-	case "warn":
-		logLevel = logging.LevelWarn
-	case "error":
-		logLevel = logging.LevelError
-	}
-
-	logger = logger.NewChild(logging.Settings{Level: logLevel})
+	logger.Patch(log.SetLevel(*settings.Log.Level))
 
 	docker, err := docker.New(settings.Docker.Host)
 	if err != nil {
@@ -140,7 +130,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	}()
 
 	healthcheck := func() error { return nil }
-	heathcheckLogger := logger.NewChild(logging.Settings{Prefix: "healthcheck: "})
+	heathcheckLogger := logger.New(log.SetComponent("healthcheck"))
 	healthServer := health.NewServer(settings.Health.Address, heathcheckLogger, healthcheck)
 	healthServerHandler, healthServerCtx, healthServerDone := goshutdown.NewGoRoutineHandler("health")
 	go func() {
