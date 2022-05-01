@@ -1,8 +1,12 @@
-package loop
+package helpers
 
 import "strings"
 
-func buildEnum(values []string) (s string) {
+func BuildEnum(values []string) (s string) {
+	for i := range values {
+		values[i] = strings.TrimPrefix(values[i], "/")
+	}
+
 	switch len(values) {
 	case 0:
 		return ""

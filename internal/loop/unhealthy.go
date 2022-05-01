@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/qdm12/deunhealth/internal/docker"
+	"github.com/qdm12/deunhealth/internal/loop/info"
 	"github.com/qdm12/golibs/logging"
 )
 
@@ -11,25 +12,24 @@ func newUnhealthyLoop(docker docker.Dockerer, logger logging.Logger) *unhealthyL
 	return &unhealthyLoop{
 		docker: docker,
 		logger: logger,
+		info:   info.NewUnhealthyLoop(docker, logger),
 	}
 }
 
 type unhealthyLoop struct {
 	logger logging.Logger
 	docker docker.Dockerer
+	info   Runner
 }
 
 func (l *unhealthyLoop) Run(ctx context.Context) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	onUnhealthyNames, err := l.docker.GetLabeled(ctx, []string{"deunhealth.restart.on.unhealthy=true"})
-	if err != nil {
-		return err
-	}
-	l.logger.Info("Monitoring containers " + buildEnum(onUnhealthyNames) + " to restart when becoming unhealthy")
-
-	l.logger.Info("New labeled containers will be automatically detected")
+	infoStreamCrashed := make(chan error)
+	go func() {
+		infoStreamCrashed <- l.info.Run(ctx)
+	}()
 
 	existingUnhealthies, err := l.docker.GetUnhealthy(ctx)
 	if err != nil {
@@ -49,11 +49,25 @@ func (l *unhealthyLoop) Run(ctx context.Context) (err error) {
 		case <-ctx.Done():
 			<-unhealthyStreamCrashed
 			close(unhealthyStreamCrashed)
+			<-infoStreamCrashed
+			close(infoStreamCrashed)
 			close(unhealthies)
 
 			return ctx.Err()
 
 		case err := <-unhealthyStreamCrashed:
+			close(unhealthyStreamCrashed)
+			cancel()
+			<-infoStreamCrashed
+			close(infoStreamCrashed)
+			close(unhealthies)
+
+			return err
+
+		case err := <-infoStreamCrashed:
+			close(infoStreamCrashed)
+			cancel()
+			<-unhealthyStreamCrashed
 			close(unhealthyStreamCrashed)
 			close(unhealthies)
 
