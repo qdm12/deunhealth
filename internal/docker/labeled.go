@@ -68,7 +68,7 @@ func (d *Docker) StreamLabeled(ctx context.Context, labels []string,
 			return
 
 		case message := <-messages:
-			if message.Type != "container" || message.Action != "starting" { // TODO starting
+			if !isContainerMessage(message) || message.Action != "starting" { // TODO starting
 				break
 			}
 

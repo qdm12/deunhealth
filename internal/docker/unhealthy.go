@@ -65,7 +65,7 @@ func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Contain
 			return
 
 		case message := <-messages:
-			if message.Type != "container" || message.Action != "health_status: unhealthy" {
+			if !isContainerMessage(message) || message.Action != "health_status: unhealthy" {
 				break
 			}
 
