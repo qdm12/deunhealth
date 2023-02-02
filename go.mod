@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/docker/docker v20.10.9+incompatible
-	github.com/moby/moby v20.10.9+incompatible
+	github.com/moby/moby v23.0.0+incompatible
 	github.com/qdm12/goshutdown v0.3.0
 	github.com/qdm12/gosplash v0.1.0
 	github.com/qdm12/govalid v0.0.0-20211007182935-f500734b7971
