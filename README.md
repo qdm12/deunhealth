@@ -52,6 +52,7 @@ Restart your unhealthy containers safely
 
 1. Set labels on containers:
     - To restart containers if they go unhealthy, use the label `deunhealth.restart.on.unhealthy=true`
+    - To restart another container, when an unhealthy one is restarted by deunhealth, use the label `deunhealth.restart.with.unhealthy.container=<deunhealth-monitored container name>`
 
 1. You can update the image with `docker pull qmcgaw/deunhealth:latest` or use one of the [tags available](https://hub.docker.com/r/qmcgaw/deunhealth/tags). ⚠️ You might want to use tagged images since `latest` will likely break compatibility until we reach a `v1.0.0` release.
 
