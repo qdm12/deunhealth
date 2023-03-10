@@ -12,6 +12,7 @@ var _ Dockerer = (*Docker)(nil)
 type Dockerer interface {
 	UnhealthyGetter
 	UnhealthyStreamer
+	LinkedContainerGetter
 	ContainerRestarter
 	LabeledGetter
 }
