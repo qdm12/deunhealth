@@ -10,6 +10,7 @@ finish() {
   [ "$nohealthMarkedID" != "" ] && docker rm -f "$nohealthMarkedID"
   [ "$healthyMarkedID" != "" ] && docker rm -f "$healthyMarkedID"
   [ "$unhealthyMarkedID" != "" ] && docker rm -f "$unhealthyMarkedID"
+  [ "$nohealthIDLinkedID" != "" ] && docker rm -f "$nohealthIDLinkedID"
   echo "done"
 }
 trap finish EXIT
@@ -23,6 +24,7 @@ docker --version
 
 healthFlags="--health-start-period=0s --health-interval=40ms --health-retries=1"
 restartOnUnhealthyLabel="--label deunhealth.restart.on.unhealthy=true"
+linkedOnUnhealthyLabel="--label deunhealth.restart.with.unhealthy.container="
 
 echo "launching test containers"
 
@@ -40,6 +42,9 @@ nohealthMarkedName="$(docker inspect -f '{{ .Name }}' $nohealthMarkedID | sed -r
 healthyMarkedName="$(docker inspect -f '{{ .Name }}' $healthyMarkedID | sed -r 's/^\///')"
 unhealthyMarkedName="$(docker inspect -f '{{ .Name }}' $unhealthyMarkedID | sed -r 's/^\///')"
 
+nohealthLinkedID="$(docker run -d --init $linkedOnUnhealthyLabel$unhealthyMarkedName alpine:3.15 sleep 30)"
+nohealthLinkedName="$(docker inspect -f '{{ .Name }}' $nohealthLinkedID | sed -r 's/^\///')"
+
 echo "launching deunhealth"
 
 deunhealthID="$(docker run -d -v /var/run/docker.sock:/var/run/docker.sock qmcgaw/deunhealth)"
@@ -54,5 +59,6 @@ logs="$(docker logs $deunhealthID)"
 [ "$(echo $logs | grep -o $healthyName | wc -l)" = "0" ] || ( echo "Container $healthyName appears in deunhealth logs"; echo "$logs"; exit 1 )
 [ "$(echo $logs | grep -o $unhealthyName | wc -l)" = "0" ] || ( echo "Container $unhealthyName appears in deunhealth logs"; echo "$logs"; exit 1 )
 [ "$(echo $logs | grep -o $nohealthMarkedName | wc -l)" = "0" ] || ( echo "Container $nohealthMarkedName appears in deunhealth logs"; echo "$logs"; exit 1 )
-[ "$(echo $logs | grep -o $healthyMarkedName | wc -l)" = "0" ] || ( echo "Container $healthyMarkedName appears in deunhealth logs"; echo "$logs"; exit 1 )
+[ "$(echo $logs | grep -o $healthyMarkedName | wc -l)" != "0" ] || ( echo "Container $healthyMarkedName does not appears in deunhealth logs"; echo "$logs"; exit 1 )
 [ "$(echo $logs | grep -o $unhealthyMarkedName | wc -l)" != "0" ] || ( echo "Container $unhealthyMarkedName does not appear in deunhealth logs"; echo "$logs"; exit 1 )
+[ "$(echo $logs | grep -o $nohealthLinkedName | wc -l)" != "0" ] || ( echo "Container $nohealthLinkedName does not appear in deunhealth logs"; echo "$logs"; exit 1 )

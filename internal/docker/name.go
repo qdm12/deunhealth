@@ -1,6 +1,8 @@
 package docker
 
 import (
+	"strings"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 )
@@ -9,7 +11,7 @@ func extractName(container types.Container) (name string) {
 	name = container.ID
 	for _, containerName := range container.Names {
 		if containerName != "" {
-			name = containerName
+			name = strings.TrimPrefix(containerName, "/")
 			break
 		}
 	}

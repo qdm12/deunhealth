@@ -88,4 +88,20 @@ func (l *unhealthyLoop) restartUnhealthy(ctx context.Context, unhealthy docker.C
 	} else {
 		l.logger.Info("container " + unhealthy.Name + " restarted successfully")
 	}
+	l.restartLinked(ctx, unhealthy)
+}
+
+func (l *unhealthyLoop) restartLinked(ctx context.Context, unhealthy docker.Container) {
+	linkedContainers, _ := l.docker.GetLinkedContainer(ctx, unhealthy)
+	for _, linkedContainer := range linkedContainers {
+		l.logger.Info("container " + linkedContainer.Name +
+			" (image " + linkedContainer.Image + ") is linked to unhealthy container " + 
+			unhealthy.Name + ", restarting it...")
+		err := l.docker.RestartContainer(ctx, linkedContainer.Name)
+		if err != nil {
+			l.logger.Error("failed restarting linked container: " + err.Error())
+		} else {
+			l.logger.Info("linked container " + linkedContainer.Name + " restarted successfully")
+		}	
+	}
 }

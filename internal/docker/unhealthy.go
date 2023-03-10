@@ -82,3 +82,33 @@ func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Contain
 		}
 	}
 }
+
+type LinkedContainerGetter interface {
+	GetLinkedContainer(ctx context.Context, unhealthy Container) (linkedContainers []Container, err error)
+}
+
+func (d *Docker) GetLinkedContainer(ctx context.Context, unhealthy Container) (linkedContainers []Container, err error) {
+	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
+	filtersArgs := filters.NewArgs()
+	filtersArgs.Add("label", "deunhealth.restart.with.unhealthy.container=" + unhealthy.Name)
+
+	containers, err := d.client.ContainerList(ctx, types.ContainerListOptions{
+		Filters: filtersArgs,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	linkedContainers = make([]Container, len(containers))
+
+	for i, container := range containers {
+		linkedContainers[i] = Container{
+			ID:    container.ID,
+			Name:  extractName(container),
+			Image: container.Image,
+		}
+	}
+
+	return linkedContainers, nil
+}
