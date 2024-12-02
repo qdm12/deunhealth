@@ -7,17 +7,17 @@ import (
 	"github.com/qdm12/deunhealth/internal/loop/helpers"
 )
 
-func NewUnhealthyLoop(docker docker.Dockerer, infoer Infoer) *UnhealthyLoop {
+func NewUnhealthyLoop(docker Docker, infoer Logger) *UnhealthyLoop {
 	return &UnhealthyLoop{
 		docker:       docker,
-		infoer:       infoer,
+		logger:       infoer,
 		monitoredIDs: make(map[string]struct{}),
 	}
 }
 
 type UnhealthyLoop struct {
-	infoer       Infoer
-	docker       docker.Dockerer
+	logger       Logger
+	docker       Docker
 	monitoredIDs map[string]struct{}
 }
 
@@ -39,12 +39,12 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 
 	switch len(containerNames) {
 	case 0:
-		l.infoer.Infof("No container found to restart when becoming unhealthy")
+		l.logger.Infof("No container found to restart when becoming unhealthy")
 	case 1:
-		l.infoer.Infof("Monitoring container %s to restart when becoming unhealthy",
+		l.logger.Infof("Monitoring container %s to restart when becoming unhealthy",
 			containerNames[0])
 	default:
-		l.infoer.Infof("Monitoring containers %s to restart when becoming unhealthy",
+		l.logger.Infof("Monitoring containers %s to restart when becoming unhealthy",
 			helpers.BuildEnum(containerNames))
 	}
 
@@ -74,7 +74,7 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 				break
 			}
 			l.monitoredIDs[container.ID] = struct{}{}
-			l.infoer.Infof("Monitoring new container %s to restart when becoming unhealthy",
+			l.logger.Infof("Monitoring new container %s to restart when becoming unhealthy",
 				container.Name)
 		}
 	}

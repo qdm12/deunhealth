@@ -9,13 +9,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 )
 
-type LabeledGetter interface {
-	GetLabeled(ctx context.Context, labels []string) (
-		containers []Container, err error)
-	StreamLabeled(ctx context.Context, labels []string,
-		containers chan<- Container, crashed chan<- error)
-}
-
 var ErrListContainers = errors.New("cannot list containers")
 
 func (d *Docker) GetLabeled(ctx context.Context, labels []string) (

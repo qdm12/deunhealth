@@ -1,22 +1,17 @@
 package loop
 
 import (
-	"github.com/qdm12/deunhealth/internal/docker"
 	"github.com/qdm12/deunhealth/internal/loop/info"
 	"github.com/qdm12/log"
 )
 
-type Looper interface {
-	Runner
-}
-
 type Loop struct {
-	runners []Runner
+	runners []runner
 }
 
-func New(docker docker.Dockerer, logger log.LeveledLogger) *Loop {
+func New(docker Docker, logger log.LeveledLogger) *Loop {
 	return &Loop{
-		runners: []Runner{
+		runners: []runner{
 			info.NewUnhealthyLoop(docker, logger),
 			newUnhealthyLoop(docker, logger),
 		},

@@ -7,7 +7,7 @@ import (
 	"github.com/qdm12/log"
 )
 
-func newUnhealthyLoop(docker docker.Dockerer, logger log.LeveledLogger) *unhealthyLoop {
+func newUnhealthyLoop(docker Docker, logger log.LeveledLogger) *unhealthyLoop {
 	return &unhealthyLoop{
 		docker: docker,
 		logger: logger,
@@ -16,7 +16,7 @@ func newUnhealthyLoop(docker docker.Dockerer, logger log.LeveledLogger) *unhealt
 
 type unhealthyLoop struct {
 	logger log.LeveledLogger
-	docker docker.Dockerer
+	docker Docker
 }
 
 func (l *unhealthyLoop) Run(ctx context.Context) (err error) {

@@ -69,7 +69,7 @@ func main() {
 }
 
 func _main(ctx context.Context, buildInfo models.BuildInformation,
-	args []string, logger log.LoggerInterface, configReader config.Interface) error {
+	args []string, logger log.LoggerInterface, configReader *config.Reader) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if health.IsClientMode(args) {

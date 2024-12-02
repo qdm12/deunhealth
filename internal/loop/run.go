@@ -4,19 +4,15 @@ import (
 	"context"
 )
 
-type Runner interface {
-	Run(ctx context.Context) (err error)
-}
-
 func (l *Loop) Run(ctx context.Context) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	errCh := make(chan error)
 
-	for _, runner := range l.runners {
-		go func(runner Runner) {
-			errCh <- runner.Run(ctx)
-		}(runner)
+	for _, r := range l.runners {
+		go func(r runner) {
+			errCh <- r.Run(ctx)
+		}(r)
 	}
 
 	for range l.runners {

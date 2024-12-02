@@ -8,21 +8,13 @@ import (
 	"time"
 )
 
-type ServerRunner interface {
-	Run(ctx context.Context) error
-}
-
 type Server struct {
 	address string
-	infoer  Infoer
+	infoer  Logger
 	handler http.Handler
 }
 
-type Infoer interface {
-	Info(s string)
-}
-
-func NewServer(address string, infoer Infoer, healthcheck func() error) *Server {
+func NewServer(address string, infoer Logger, healthcheck func() error) *Server {
 	handler := newHandler(healthcheck)
 	return &Server{
 		address: address,

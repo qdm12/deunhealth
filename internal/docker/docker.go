@@ -7,15 +7,6 @@ import (
 	"github.com/moby/moby/client"
 )
 
-var _ Dockerer = (*Docker)(nil)
-
-type Dockerer interface {
-	UnhealthyGetter
-	UnhealthyStreamer
-	ContainerRestarter
-	LabeledGetter
-}
-
 type Docker struct {
 	client client.CommonAPIClient
 }

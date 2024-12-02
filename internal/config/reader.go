@@ -9,14 +9,8 @@ import (
 	"github.com/qdm12/govalid"
 )
 
-var _ Interface = (*env.Reader)(nil)
-
-type Interface interface {
-	Read() (s settings.Settings, err error)
-}
-
 type Reader struct {
-	env       Interface
+	env       *env.Reader
 	validator govalid.Interface
 }
 

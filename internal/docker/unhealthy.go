@@ -7,10 +7,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 )
 
-type UnhealthyGetter interface {
-	GetUnhealthy(ctx context.Context) (unhealthies []Container, err error)
-}
-
 func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []Container, err error) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
@@ -36,10 +32,6 @@ func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []Container, err
 	}
 
 	return unhealthies, nil
-}
-
-type UnhealthyStreamer interface {
-	StreamUnhealthy(ctx context.Context, unhealthies chan<- Container, crashed chan<- error)
 }
 
 func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Container, crashed chan<- error) {

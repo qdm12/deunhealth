@@ -14,17 +14,13 @@ func IsClientMode(args []string) bool {
 	return len(args) > 1 && args[1] == "healthcheck"
 }
 
-type Client interface {
-	Query(ctx context.Context, address string) error
-}
-
-type client struct {
+type Client struct {
 	*http.Client
 }
 
-func NewClient() Client {
+func NewClient() *Client {
 	const timeout = 5 * time.Second
-	return &client{
+	return &Client{
 		Client: &http.Client{Timeout: timeout},
 	}
 }
@@ -37,7 +33,7 @@ var (
 
 // Query sends an HTTP request to the other instance of
 // the program, and to its internal healthcheck server.
-func (c *client) Query(ctx context.Context, address string) error {
+func (c *Client) Query(ctx context.Context, address string) error {
 	_, port, err := net.SplitHostPort(address)
 	if err != nil {
 		return fmt.Errorf("%w: %s: %s", ErrParseHealthServerAddress, address, err)
