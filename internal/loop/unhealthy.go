@@ -61,7 +61,7 @@ func (l *unhealthyLoop) Run(ctx context.Context) (err error) {
 func (l *unhealthyLoop) restartUnhealthy(ctx context.Context, unhealthy docker.Container) {
 	l.logger.Info("container " + unhealthy.Name +
 		" (image " + unhealthy.Image + ") is unhealthy, restarting it...")
-	err := l.docker.RestartContainer(ctx, unhealthy.Name)
+	err := l.docker.RestartContainer(ctx, unhealthy.ID)
 	if err != nil {
 		l.logger.Error("failed restarting container: " + err.Error())
 	} else {

@@ -17,10 +17,9 @@ func extractName(container types.Container) (name string) {
 }
 
 func extractNameFromActor(actor events.Actor) (name string) {
-	name = actor.ID
-	if actor.Attributes["name"] != "" {
-		name = actor.Attributes["name"]
-	}
+	return actor.Attributes["name"]
+}
 
-	return name
+func extractImageFromActor(actor events.Actor) (image string) {
+	return actor.Attributes["image"]
 }

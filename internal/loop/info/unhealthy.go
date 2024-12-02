@@ -9,8 +9,9 @@ import (
 
 func NewUnhealthyLoop(docker docker.Dockerer, infoer Infoer) *UnhealthyLoop {
 	return &UnhealthyLoop{
-		docker: docker,
-		infoer: infoer,
+		docker:       docker,
+		infoer:       infoer,
+		monitoredIDs: make(map[string]struct{}),
 	}
 }
 
@@ -19,8 +20,9 @@ type Infoer interface {
 }
 
 type UnhealthyLoop struct {
-	infoer Infoer
-	docker docker.Dockerer
+	infoer       Infoer
+	docker       docker.Dockerer
+	monitoredIDs map[string]struct{}
 }
 
 func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
@@ -28,13 +30,20 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 	defer cancel()
 
 	healthMonitorLabels := []string{"deunhealth.restart.on.unhealthy=true"}
-	onUnhealthyNames, err := l.docker.GetLabeled(ctx, healthMonitorLabels)
+	onUnhealthyContainers, err := l.docker.GetLabeled(ctx, healthMonitorLabels)
 	if err != nil {
 		return err
 	}
-	l.infoer.Info("Monitoring containers " + helpers.BuildEnum(onUnhealthyNames) + " to restart when becoming unhealthy")
 
-	healthMonitored := make(chan string)
+	containerNames := make([]string, len(onUnhealthyContainers))
+	for i, container := range onUnhealthyContainers {
+		l.monitoredIDs[container.ID] = struct{}{}
+		containerNames[i] = container.Name
+	}
+
+	l.infoer.Info("Monitoring containers " + helpers.BuildEnum(containerNames) + " to restart when becoming unhealthy")
+
+	healthMonitored := make(chan docker.Container)
 	healthStreamCrashed := make(chan error)
 
 	go l.docker.StreamLabeled(ctx, healthMonitorLabels, healthMonitored, healthStreamCrashed)
@@ -54,8 +63,13 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 
 			return err
 
-		case healthMonitorName := <-healthMonitored:
-			l.infoer.Info("Monitoring new container " + healthMonitorName + " to restart when becoming unhealthy")
+		case container := <-healthMonitored:
+			_, alreadyMonitored := l.monitoredIDs[container.ID]
+			if alreadyMonitored {
+				break
+			}
+			l.monitoredIDs[container.ID] = struct{}{}
+			l.infoer.Info("Monitoring new container " + container.Name + " to restart when becoming unhealthy")
 		}
 	}
 }

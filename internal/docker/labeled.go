@@ -11,40 +11,44 @@ import (
 
 type LabeledGetter interface {
 	GetLabeled(ctx context.Context, labels []string) (
-		containerNames []string, err error)
+		containers []Container, err error)
 	StreamLabeled(ctx context.Context, labels []string,
-		containerNames chan<- string, crashed chan<- error)
+		containers chan<- Container, crashed chan<- error)
 }
 
 var ErrListContainers = errors.New("cannot list containers")
 
 func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
-	containerNames []string, err error) {
+	containers []Container, err error) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	for _, label := range labels {
 		filtersArgs.Add("label", label)
 	}
 
-	containers, err := d.client.ContainerList(ctx, types.ContainerListOptions{
+	list, err := d.client.ContainerList(ctx, types.ContainerListOptions{
 		Filters: filtersArgs,
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrListContainers, err)
 	}
 
-	containerNames = make([]string, len(containers))
-
-	for i, container := range containers {
-		containerNames[i] = extractName(container)
+	containers = make([]Container, len(list))
+	for i, container := range list {
+		containers[i] = Container{
+			ID:    container.ID,
+			Image: container.Image,
+		}
+		if len(container.Names) > 0 {
+			containers[i].Name = container.Names[0]
+		}
 	}
 
-	return containerNames, nil
+	return containers, nil
 }
 
 func (d *Docker) StreamLabeled(ctx context.Context, labels []string,
-	containerNames chan<- string, crashed chan<- error) {
+	containers chan<- Container, crashed chan<- error) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	for _, label := range labels {
@@ -68,14 +72,18 @@ func (d *Docker) StreamLabeled(ctx context.Context, labels []string,
 			return
 
 		case message := <-messages:
-			if !isContainerMessage(message) || message.Action != "starting" { // TODO starting
+			if !isContainerMessage(message) {
 				break
 			}
 
-			containerName := extractNameFromActor(message.Actor)
+			container := Container{
+				ID:    message.ID,
+				Name:  extractNameFromActor(message.Actor),
+				Image: extractImageFromActor(message.Actor),
+			}
 
 			select {
-			case containerNames <- containerName:
+			case containers <- container:
 			case <-ctx.Done(): // do not block
 			}
 		}
