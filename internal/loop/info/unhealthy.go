@@ -15,10 +15,6 @@ func NewUnhealthyLoop(docker docker.Dockerer, infoer Infoer) *UnhealthyLoop {
 	}
 }
 
-type Infoer interface {
-	Info(s string)
-}
-
 type UnhealthyLoop struct {
 	infoer       Infoer
 	docker       docker.Dockerer
@@ -41,7 +37,16 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 		containerNames[i] = container.Name
 	}
 
-	l.infoer.Info("Monitoring containers " + helpers.BuildEnum(containerNames) + " to restart when becoming unhealthy")
+	switch len(containerNames) {
+	case 0:
+		l.infoer.Infof("No container found to restart when becoming unhealthy")
+	case 1:
+		l.infoer.Infof("Monitoring container %s to restart when becoming unhealthy",
+			containerNames[0])
+	default:
+		l.infoer.Infof("Monitoring containers %s to restart when becoming unhealthy",
+			helpers.BuildEnum(containerNames))
+	}
 
 	healthMonitored := make(chan docker.Container)
 	healthStreamCrashed := make(chan error)
@@ -69,7 +74,8 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 				break
 			}
 			l.monitoredIDs[container.ID] = struct{}{}
-			l.infoer.Info("Monitoring new container " + container.Name + " to restart when becoming unhealthy")
+			l.infoer.Infof("Monitoring new container %s to restart when becoming unhealthy",
+				container.Name)
 		}
 	}
 }
