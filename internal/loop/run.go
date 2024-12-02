@@ -13,14 +13,13 @@ func (l *Loop) Run(ctx context.Context) (err error) {
 	defer cancel()
 	errCh := make(chan error)
 
-	var subLoops int
+	for _, runner := range l.runners {
+		go func(runner Runner) {
+			errCh <- runner.Run(ctx)
+		}(runner)
+	}
 
-	subLoops++
-	go func() {
-		errCh <- l.unhealthy.Run(ctx)
-	}()
-
-	for i := 0; i < subLoops; i++ {
+	for range l.runners {
 		workerErr := <-errCh
 		if ctx.Err() == nil && workerErr != nil {
 			err = workerErr

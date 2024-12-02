@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/qdm12/deunhealth/internal/docker"
-	"github.com/qdm12/deunhealth/internal/loop/info"
 	"github.com/qdm12/log"
 )
 
@@ -12,24 +11,17 @@ func newUnhealthyLoop(docker docker.Dockerer, logger log.LeveledLogger) *unhealt
 	return &unhealthyLoop{
 		docker: docker,
 		logger: logger,
-		info:   info.NewUnhealthyLoop(docker, logger),
 	}
 }
 
 type unhealthyLoop struct {
 	logger log.LeveledLogger
 	docker docker.Dockerer
-	info   Runner
 }
 
 func (l *unhealthyLoop) Run(ctx context.Context) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-
-	infoStreamCrashed := make(chan error)
-	go func() {
-		infoStreamCrashed <- l.info.Run(ctx)
-	}()
 
 	existingUnhealthies, err := l.docker.GetUnhealthy(ctx)
 	if err != nil {
@@ -49,8 +41,6 @@ func (l *unhealthyLoop) Run(ctx context.Context) (err error) {
 		case <-ctx.Done():
 			<-unhealthyStreamCrashed
 			close(unhealthyStreamCrashed)
-			<-infoStreamCrashed
-			close(infoStreamCrashed)
 			close(unhealthies)
 
 			return ctx.Err()
@@ -58,17 +48,6 @@ func (l *unhealthyLoop) Run(ctx context.Context) (err error) {
 		case err := <-unhealthyStreamCrashed:
 			close(unhealthyStreamCrashed)
 			cancel()
-			<-infoStreamCrashed
-			close(infoStreamCrashed)
-			close(unhealthies)
-
-			return err
-
-		case err := <-infoStreamCrashed:
-			close(infoStreamCrashed)
-			cancel()
-			<-unhealthyStreamCrashed
-			close(unhealthyStreamCrashed)
 			close(unhealthies)
 
 			return err
