@@ -2,6 +2,7 @@ package info
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/qdm12/deunhealth/internal/docker"
 	"github.com/qdm12/deunhealth/internal/loop/helpers"
@@ -19,16 +20,48 @@ type UnhealthyLoop struct {
 	logger       Logger
 	docker       Docker
 	monitoredIDs map[string]struct{}
+	cancel       context.CancelFunc
+	done         <-chan struct{}
 }
 
-func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+func (l *UnhealthyLoop) String() string {
+	return "unhealthy info loop"
+}
+
+func (l *UnhealthyLoop) Start(ctx context.Context) (runError <-chan error, err error) {
+	ready := make(chan struct{})
+	done := make(chan struct{})
+	l.done = done
+	runErrorCh := make(chan error)
+	runCtx, cancel := context.WithCancel(context.Background())
+	l.cancel = cancel
+	go l.run(runCtx, ready, done, runErrorCh) //nolint:contextcheck
+	select {
+	case <-ctx.Done():
+		l.cancel()
+		<-done
+		return nil, ctx.Err()
+	case <-ready:
+		return runErrorCh, nil
+	}
+}
+
+func (l *UnhealthyLoop) Stop() (err error) {
+	l.cancel()
+	<-l.done
+	return nil
+}
+
+func (l *UnhealthyLoop) run(ctx context.Context, ready chan<- struct{},
+	done chan<- struct{}, runError chan<- error) {
+	defer close(done)
+	close(ready)
 
 	healthMonitorLabels := []string{"deunhealth.restart.on.unhealthy=true"}
 	onUnhealthyContainers, err := l.docker.GetLabeled(ctx, healthMonitorLabels)
 	if err != nil {
-		return err
+		runError <- fmt.Errorf("getting health monitored containers: %w", err)
+		return
 	}
 
 	containerNames := make([]string, len(onUnhealthyContainers))
@@ -45,18 +78,13 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctx.Done(): // stop requested
 			<-healthStreamCrashed
-			close(healthStreamCrashed)
-			close(healthMonitored)
-
-			return ctx.Err()
+			return
 
 		case err := <-healthStreamCrashed:
-			close(healthStreamCrashed)
-			close(healthMonitored)
-
-			return err
+			runError <- fmt.Errorf("streaming unhealthy containers: %w", err)
+			return
 
 		case container := <-healthMonitored:
 			_, alreadyMonitored := l.monitoredIDs[container.ID]

@@ -14,8 +14,9 @@ import (
 	"github.com/qdm12/deunhealth/internal/docker"
 	"github.com/qdm12/deunhealth/internal/health"
 	"github.com/qdm12/deunhealth/internal/loop"
+	"github.com/qdm12/deunhealth/internal/loop/info"
 	"github.com/qdm12/deunhealth/internal/models"
-	"github.com/qdm12/goshutdown"
+	"github.com/qdm12/goservices"
 	"github.com/qdm12/gosplash"
 	"github.com/qdm12/log"
 )
@@ -68,7 +69,7 @@ func main() {
 	os.Exit(1)
 }
 
-func _main(ctx context.Context, buildInfo models.BuildInformation, //nolint:contextcheck
+func _main(ctx context.Context, buildInfo models.BuildInformation,
 	args []string, logger log.LoggerInterface, configReader *config.Reader) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -76,34 +77,10 @@ func _main(ctx context.Context, buildInfo models.BuildInformation, //nolint:cont
 		// Running the program in a separate instance through the Docker
 		// built-in healthcheck, in an ephemeral fashion to query the
 		// long running instance of the program about its status
-		client := health.NewClient()
-
-		settings, err := configReader.Read()
-		if err != nil {
-			return err
-		}
-
-		return client.Query(ctx, settings.Health.Address)
+		return runHealthClient(ctx, configReader)
 	}
 
-	announcementExpiration, err := time.Parse("2006-01-02", "2021-07-14")
-	if err != nil {
-		return err
-	}
-	splashLines := gosplash.MakeLines(gosplash.Settings{
-		User:          "qdm12",
-		Repository:    "deunhealth",
-		Authors:       []string{"github.com/qdm12"},
-		Emails:        []string{"quentin.mcgaw@gmail.com"},
-		Version:       buildInfo.Version,
-		Commit:        buildInfo.Commit,
-		BuildDate:     buildInfo.BuildDate,
-		Announcement:  "",
-		AnnounceExp:   announcementExpiration,
-		PaypalUser:    "qmcgaw",
-		GithubSponsor: "qdm12",
-	})
-	fmt.Println(strings.Join(splashLines, "\n"))
+	splashLines(buildInfo)
 
 	settings, err := configReader.Read()
 	if err != nil {
@@ -119,30 +96,79 @@ func _main(ctx context.Context, buildInfo models.BuildInformation, //nolint:cont
 
 	docker.NegotiateVersion(ctx)
 
-	looper := loop.New(docker, logger)
-	looperHandler, looperCtx, looperDone := goshutdown.NewGoRoutineHandler("loop")
-	go func() {
-		defer close(looperDone)
-		if err := looper.Run(looperCtx); err != nil {
-			logger.Error(err.Error())
-			cancel()
-		}
-	}()
+	var services []goservices.Service
+
+	unhealthyLoop := loop.NewUnhealthyLoop(docker, logger)
+	services = append(services, unhealthyLoop)
+
+	unhealthyInfoLoop := info.NewUnhealthyLoop(docker, logger)
+	services = append(services, unhealthyInfoLoop)
 
 	healthcheck := func() error { return nil }
 	heathcheckLogger := logger.New(log.SetComponent("healthcheck"))
-	healthServer := health.NewServer(settings.Health.Address, heathcheckLogger, healthcheck)
-	healthServerHandler, healthServerCtx, healthServerDone := goshutdown.NewGoRoutineHandler("health")
-	go func() {
-		defer close(healthServerDone)
-		if err := healthServer.Run(healthServerCtx); err != nil {
-			logger.Error(err.Error())
+	healthServer, err := health.NewServer(settings.Health.Address, heathcheckLogger, healthcheck)
+	if err != nil {
+		return fmt.Errorf("creating health server: %w", err)
+	}
+	services = append(services, healthServer)
+
+	return setupAndRunServices(ctx, services)
+}
+
+func runHealthClient(ctx context.Context,
+	configReader *config.Reader) (err error) {
+	client := health.NewClient()
+
+	settings, err := configReader.Read()
+	if err != nil {
+		return err
+	}
+
+	return client.Query(ctx, settings.Health.Address)
+}
+
+func splashLines(buildInfo models.BuildInformation) {
+	announcementExpiration, err := time.Parse("2006-01-02", "2021-07-14")
+	if err != nil {
+		panic(err)
+	}
+	splashLines := gosplash.MakeLines(gosplash.Settings{
+		User:          "qdm12",
+		Repository:    "deunhealth",
+		Authors:       []string{"github.com/qdm12"},
+		Emails:        []string{"quentin.mcgaw@gmail.com"},
+		Version:       buildInfo.Version,
+		Commit:        buildInfo.Commit,
+		BuildDate:     buildInfo.BuildDate,
+		Announcement:  "",
+		AnnounceExp:   announcementExpiration,
+		PaypalUser:    "qmcgaw",
+		GithubSponsor: "qdm12",
+	})
+	fmt.Println(strings.Join(splashLines, "\n"))
+}
+
+func setupAndRunServices(ctx context.Context,
+	services []goservices.Service) (err error) {
+	group, err := goservices.NewGroup(goservices.GroupSettings{
+		Services: services,
+	})
+	if err != nil {
+		return fmt.Errorf("creating services group: %w", err)
+	}
+	runError, err := group.Start(ctx)
+	if err != nil {
+		return fmt.Errorf("starting services group: %w", err)
+	}
+
+	select {
+	case <-ctx.Done():
+		err = group.Stop()
+		if err != nil {
+			return fmt.Errorf("stopping services group: %w", err)
 		}
-	}()
-
-	group := goshutdown.NewGroupHandler("group")
-	group.Add(looperHandler, healthServerHandler)
-
-	<-ctx.Done()
-	return group.Shutdown(context.Background()) //nolint:contextcheck
+		return nil
+	case err = <-runError:
+		return fmt.Errorf("services group encountered an error: %w", err)
+	}
 }
