@@ -17,6 +17,8 @@ import (
 	"github.com/qdm12/deunhealth/internal/loop/info"
 	"github.com/qdm12/deunhealth/internal/models"
 	"github.com/qdm12/goservices"
+	"github.com/qdm12/gosettings/reader"
+	"github.com/qdm12/gosettings/reader/sources/env"
 	"github.com/qdm12/gosplash"
 	"github.com/qdm12/log"
 )
@@ -42,12 +44,14 @@ func main() {
 
 	logger := log.New()
 
-	configReader := config.New()
+	reader := reader.New(reader.Settings{
+		Sources: []reader.Source{env.New(env.Settings{})},
+	})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	errorCh := make(chan error)
 	go func() {
-		errorCh <- _main(ctx, buildInfo, args, logger, configReader)
+		errorCh <- _main(ctx, buildInfo, args, logger, reader)
 	}()
 
 	select {
@@ -75,24 +79,28 @@ func main() {
 }
 
 func _main(ctx context.Context, buildInfo models.BuildInformation,
-	args []string, logger log.LoggerInterface, configReader *config.Reader) error {
+	args []string, logger log.LoggerInterface, reader *reader.Reader) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if health.IsClientMode(args) {
 		// Running the program in a separate instance through the Docker
 		// built-in healthcheck, in an ephemeral fashion to query the
 		// long running instance of the program about its status
-		return runHealthClient(ctx, configReader)
+		return runHealthClient(ctx, reader)
 	}
 
 	splashLines(buildInfo)
 
-	settings, err := configReader.Read()
+	var settings config.Settings
+	settings.Read(reader)
+	settings.SetDefaults()
+	err = settings.Validate()
 	if err != nil {
-		return err
+		return fmt.Errorf("validating settings: %w", err)
 	}
 
-	logger.Patch(log.SetLevel(*settings.Log.Level))
+	logLevel, _ := log.ParseLevel(settings.Log.Level)
+	logger.Patch(log.SetLevel(logLevel))
 
 	docker, err := docker.New(settings.Docker.Host)
 	if err != nil {
@@ -121,15 +129,18 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 }
 
 func runHealthClient(ctx context.Context,
-	configReader *config.Reader) (err error) {
+	configReader *reader.Reader) (err error) {
 	client := health.NewClient()
 
-	settings, err := configReader.Read()
+	var settings config.Health
+	settings.Read(configReader)
+	settings.SetDefaults()
+	err = settings.Validate()
 	if err != nil {
-		return err
+		return fmt.Errorf("validating health settings: %w", err)
 	}
 
-	return client.Query(ctx, settings.Health.Address)
+	return client.Query(ctx, settings.Address)
 }
 
 func splashLines(buildInfo models.BuildInformation) {
