@@ -55,14 +55,14 @@ Restart your unhealthy containers safely
 
 1. You can update the image with `docker pull qmcgaw/deunhealth:latest` or use one of the [tags available](https://hub.docker.com/r/qmcgaw/deunhealth/tags). ⚠️ You might want to use tagged images since `latest` will likely break compatibility until we reach a `v1.0.0` release.
 
-### Environment variables
+### Options
 
-| Environment variable | Default | Possible values | Description |
-| --- | --- | --- | --- |
-| `DOCKER_HOST` | Default Docker socket location | Docker host value | Docker host value such as `unix:///var/run/docker.sock` or `tcp://socket-proxy:2375` |
-| `LOG_LEVEL` | `info` | `debug`, `info`, `warning`, `error` | Logging level |
-| `HEALTH_SERVER_ADDRESS` | `127.0.0.1:9999` | Valid address | Health server listening address |
-| `TZ` | `America/Montreal` | *string* | Timezone |
+| Environment variable | Flag | Default | Possible values | Description |
+| --- | --- | --- | --- | --- |
+| `DOCKER_HOST` | `--docker-host` | Default Docker socket location | Docker host value | Docker host value such as `unix:///var/run/docker.sock` or `tcp://socket-proxy:2375` |
+| `LOG_LEVEL` | `--log-level` | `info` | `debug`, `info`, `warning`, `error` | Logging level |
+| `HEALTH_SERVER_ADDRESS` | `--health-server-address` | `127.0.0.1:9999` | Valid address | Health server listening address |
+| `TZ` | N/A | `America/Montreal` | *string* | Timezone |
 
 ## Safety
 

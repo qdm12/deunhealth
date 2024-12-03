@@ -18,7 +18,6 @@ import (
 	"github.com/qdm12/deunhealth/internal/models"
 	"github.com/qdm12/goservices"
 	"github.com/qdm12/gosettings/reader"
-	"github.com/qdm12/gosettings/reader/sources/env"
 	"github.com/qdm12/gosplash"
 	"github.com/qdm12/log"
 )
@@ -44,9 +43,7 @@ func main() {
 
 	logger := log.New()
 
-	reader := reader.New(reader.Settings{
-		Sources: []reader.Source{env.New(env.Settings{})},
-	})
+	reader := reader.New(reader.Settings{})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	errorCh := make(chan error)
