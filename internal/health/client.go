@@ -51,7 +51,7 @@ func (c *Client) Query(ctx context.Context, address string) error {
 	b, err := io.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	if err != nil {
-		return fmt.Errorf("%w: %s: %s", ErrUnhealthy, resp.Status, err)
+		return fmt.Errorf("%w: %s: %w", ErrUnhealthy, resp.Status, err)
 	}
 	return fmt.Errorf("%w: %s", ErrUnhealthy, string(b))
 }

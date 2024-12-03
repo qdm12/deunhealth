@@ -36,17 +36,7 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 		l.monitoredIDs[container.ID] = struct{}{}
 		containerNames[i] = container.Name
 	}
-
-	switch len(containerNames) {
-	case 0:
-		l.logger.Infof("No container found to restart when becoming unhealthy")
-	case 1:
-		l.logger.Infof("Monitoring container %s to restart when becoming unhealthy",
-			containerNames[0])
-	default:
-		l.logger.Infof("Monitoring containers %s to restart when becoming unhealthy",
-			helpers.BuildEnum(containerNames))
-	}
+	logContainerNames(l.logger, containerNames)
 
 	healthMonitored := make(chan docker.Container)
 	healthStreamCrashed := make(chan error)
@@ -77,5 +67,18 @@ func (l *UnhealthyLoop) Run(ctx context.Context) (err error) {
 			l.logger.Infof("Monitoring new container %s to restart when becoming unhealthy",
 				container.Name)
 		}
+	}
+}
+
+func logContainerNames(logger Logger, containerNames []string) {
+	switch len(containerNames) {
+	case 0:
+		logger.Infof("No container found to restart when becoming unhealthy")
+	case 1:
+		logger.Infof("Monitoring container %s to restart when becoming unhealthy",
+			containerNames[0])
+	default:
+		logger.Infof("Monitoring containers %s to restart when becoming unhealthy",
+			helpers.BuildEnum(containerNames))
 	}
 }

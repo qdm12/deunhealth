@@ -68,7 +68,7 @@ func main() {
 	os.Exit(1)
 }
 
-func _main(ctx context.Context, buildInfo models.BuildInformation,
+func _main(ctx context.Context, buildInfo models.BuildInformation, //nolint:contextcheck
 	args []string, logger log.LoggerInterface, configReader *config.Reader) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -144,5 +144,5 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	group.Add(looperHandler, healthServerHandler)
 
 	<-ctx.Done()
-	return group.Shutdown(context.Background())
+	return group.Shutdown(context.Background()) //nolint:contextcheck
 }

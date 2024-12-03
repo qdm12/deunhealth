@@ -32,7 +32,7 @@ func (s *Server) Run(ctx context.Context) error {
 		const shutdownGraceDuration = 2 * time.Second
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownGraceDuration)
 		defer cancel()
-		shutdownErrCh <- server.Shutdown(shutdownCtx)
+		shutdownErrCh <- server.Shutdown(shutdownCtx) //nolint:contextcheck
 	}()
 
 	s.infoer.Info("listening on " + s.address)
