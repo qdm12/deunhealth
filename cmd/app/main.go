@@ -29,8 +29,8 @@ var (
 )
 
 func main() {
-	ctx := context.Background()
-	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
 	buildInfo := models.BuildInformation{
 		Version:   version,
@@ -44,15 +44,17 @@ func main() {
 
 	configReader := config.New()
 
+	ctx, cancel := context.WithCancel(context.Background())
 	errorCh := make(chan error)
 	go func() {
 		errorCh <- _main(ctx, buildInfo, args, logger, configReader)
 	}()
 
 	select {
-	case <-ctx.Done():
-		logger.Warn("Caught OS signal, shutting down\n")
-		stop()
+	case signal := <-signalCh:
+		fmt.Println("") // Skip a line for ^C character
+		logger.Warnf("Caught OS signal %s (%d), shutting down", signal, signal)
+		cancel()
 	case err := <-errorCh:
 		close(errorCh)
 		if err == nil { // expected exit such as healthcheck query
@@ -62,9 +64,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := <-errorCh
-	if err != nil {
-		logger.Error("shutdown error: " + err.Error())
+	select {
+	case <-signalCh: // hard exit on second signal
+	case err := <-errorCh:
+		if err != nil {
+			logger.Error("shutdown error: " + err.Error())
+		}
 	}
 	os.Exit(1)
 }
