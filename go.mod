@@ -1,6 +1,6 @@
 module github.com/qdm12/deunhealth
 
-go 1.17
+go 1.23
 
 require (
 	github.com/docker/docker v20.10.9+incompatible
