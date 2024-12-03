@@ -62,5 +62,5 @@ LABEL \
     org.opencontainers.image.documentation="https://github.com/qdm12/deunhealth/blob/main/README.md" \
     org.opencontainers.image.source="https://github.com/qdm12/deunhealth" \
     org.opencontainers.image.title="deunhealth" \
-    org.opencontainers.image.description="REstart your unhealthy containers in style"
+    org.opencontainers.image.description="Restart your unhealthy containers in style"
 COPY --from=build --chown=1000 /tmp/gobuild/app /app
