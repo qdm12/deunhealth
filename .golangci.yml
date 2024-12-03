@@ -3,20 +3,14 @@ linters-settings:
     locale: US
 
 issues:
+  exclude-dirs:
+    - .devcontainer
+    - .github
   exclude-rules:
     - path: _test\.go
       linters:
         - dupl
-        - maligned
-        - goerr113
-    - path: cmd/
-      text: commit is a global variable
-      linters:
-        - gochecknoglobals
-    - path: cmd/
-      text: buildDate is a global variable
-      linters:
-        - gochecknoglobals
+        - err113
 
 linters:
   enable:
@@ -24,15 +18,15 @@ linters:
     - bidichk
     - bodyclose
     - containedctx
+    - copyloopvar
     - decorder
     - dogsled
     - dupl
     - durationcheck
-    - errcheck
+    - err113
     - errchkjson
     - errname
     - exhaustive
-    - exportloopref
     - forcetypeassert
     - gci
     - gochecknoglobals
@@ -42,10 +36,8 @@ linters:
     - gocritic
     - gocyclo
     - godot
-    - goerr113
     - goheader
     - goimports
-    - gomnd
     - gomoddirectives
     - goprintffuncname
     - gosec
@@ -55,6 +47,7 @@ linters:
     - maintidx
     - makezero
     - misspell
+    - mnd
     - nakedret
     - nestif
     - nilerr
@@ -62,7 +55,6 @@ linters:
     - noctx
     - nolintlint
     - prealloc
-    - predeclared
     - predeclared
     - promlinter
     - revive
@@ -75,8 +67,3 @@ linters:
     - unparam
     - wastedassign
     - whitespace
-
-run:
-  skip-dirs:
-    - .devcontainer
-    - .github

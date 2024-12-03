@@ -23,8 +23,8 @@ import (
 var (
 	// Values set by the build system.
 	version   = "unknown"
-	commit    = "unknown"
-	buildDate = "an unknown date"
+	commit    = "unknown"         //nolint:gochecknoglobals
+	buildDate = "an unknown date" //nolint:gochecknoglobals
 )
 
 func main() {

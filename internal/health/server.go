@@ -24,7 +24,8 @@ func NewServer(address string, infoer Logger, healthcheck func() error) *Server 
 }
 
 func (s *Server) Run(ctx context.Context) error {
-	server := http.Server{Addr: s.address, Handler: s.handler}
+	const readTimeout = time.Second
+	server := http.Server{Addr: s.address, Handler: s.handler, ReadTimeout: readTimeout}
 	shutdownErrCh := make(chan error)
 	go func() {
 		<-ctx.Done()
