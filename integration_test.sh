@@ -29,7 +29,7 @@ echo "launching test containers"
 nohealthID="$(docker run -d --init alpine:3.20 sleep 30)"
 healthyID="$(docker run -d --init --health-cmd='exit 0' $healthFlags alpine:3.20 sleep 30)"
 unhealthyID="$(docker run -d --init --health-cmd='exit 1' $healthFlags alpine:3.20 sleep 30)"
-nohealthMarkedID="$(docker run -d $restartOnUnhealthyLabel alpine:3.20)"
+nohealthMarkedID="$(docker run -d --init $restartOnUnhealthyLabel alpine:3.20 sleep 30)"
 healthyMarkedID="$(docker run -d --init $restartOnUnhealthyLabel --health-cmd='exit 0' $healthFlags alpine:3.20 sleep 30)"
 unhealthyMarkedID="$(docker run -d --init $restartOnUnhealthyLabel --health-cmd='exit 1' $healthFlags alpine:3.20 sleep 30)"
 
@@ -53,6 +53,6 @@ logs="$(docker logs $deunhealthID)"
 [ "$(echo $logs | grep -o $nohealthName | wc -l)" = "0" ] || ( echo "Container $nohealthName appears in deunhealth logs"; echo "$logs"; exit 1 )
 [ "$(echo $logs | grep -o $healthyName | wc -l)" = "0" ] || ( echo "Container $healthyName appears in deunhealth logs"; echo "$logs"; exit 1 )
 [ "$(echo $logs | grep -o $unhealthyName | wc -l)" = "0" ] || ( echo "Container $unhealthyName appears in deunhealth logs"; echo "$logs"; exit 1 )
-[ "$(echo $logs | grep -o $nohealthMarkedName | wc -l)" = "0" ] || ( echo "Container $nohealthMarkedName appears in deunhealth logs"; echo "$logs"; exit 1 )
-[ "$(echo $logs | grep -o $healthyMarkedName | wc -l)" = "0" ] || ( echo "Container $healthyMarkedName appears in deunhealth logs"; echo "$logs"; exit 1 )
+[ "$(echo $logs | grep -o $nohealthMarkedName | wc -l)" != "0" ] || ( echo "Container $nohealthMarkedName does not appear in deunhealth logs"; echo "$logs"; exit 1 )
+[ "$(echo $logs | grep -o $healthyMarkedName | wc -l)" != "0" ] || ( echo "Container $healthyMarkedName does not appear in deunhealth logs"; echo "$logs"; exit 1 )
 [ "$(echo $logs | grep -o $unhealthyMarkedName | wc -l)" != "0" ] || ( echo "Container $unhealthyMarkedName does not appear in deunhealth logs"; echo "$logs"; exit 1 )
