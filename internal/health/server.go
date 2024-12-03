@@ -23,11 +23,6 @@ func NewServer(address string, infoer Logger, healthcheck func() error) *Server 
 	}
 }
 
-var (
-	ErrCrashed  = errors.New("server crashed")
-	ErrShutdown = errors.New("server could not be shutdown")
-)
-
 func (s *Server) Run(ctx context.Context) error {
 	server := http.Server{Addr: s.address, Handler: s.handler}
 	shutdownErrCh := make(chan error)
@@ -41,12 +36,12 @@ func (s *Server) Run(ctx context.Context) error {
 
 	s.infoer.Info("listening on " + s.address)
 	err := server.ListenAndServe()
-	if err != nil && !errors.Is(ctx.Err(), context.Canceled) { // server crashed
-		return fmt.Errorf("%w: %s", ErrCrashed, err)
+	if err != nil && !errors.Is(ctx.Err(), context.Canceled) {
+		return fmt.Errorf("health server crashed: %w", err)
 	}
 
 	if err := <-shutdownErrCh; err != nil {
-		return fmt.Errorf("%w: %s", ErrShutdown, err)
+		return fmt.Errorf("health server failed shutting down: %w", err)
 	}
 
 	return nil

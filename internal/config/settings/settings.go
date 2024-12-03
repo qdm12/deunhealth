@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/qdm12/govalid"
@@ -25,23 +24,17 @@ func (s *Settings) MergeWith(other Settings) {
 	s.Log.mergeWith(other.Log)
 }
 
-var (
-	ErrValidatingDocker = errors.New("error validating docker settings")
-	ErrValidatingHealth = errors.New("error validating health settings")
-	ErrValidatingLog    = errors.New("error validating log settings")
-)
-
 func (s *Settings) Validate(validator govalid.Interface) error {
 	if err := s.Docker.validate(); err != nil {
-		return fmt.Errorf("%w: %s", ErrValidatingDocker, err)
+		return fmt.Errorf("validating Docker settings: %w", err)
 	}
 
 	if err := s.Health.validate(validator); err != nil {
-		return fmt.Errorf("%w: %s", ErrValidatingHealth, err)
+		return fmt.Errorf("validating health settings: %w", err)
 	}
 
 	if err := s.Log.validate(); err != nil {
-		return fmt.Errorf("%w: %s", ErrValidatingLog, err)
+		return fmt.Errorf("validating log settings: %w", err)
 	}
 
 	return nil

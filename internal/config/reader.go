@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/qdm12/deunhealth/internal/config/env"
@@ -21,22 +20,17 @@ func New() *Reader {
 	}
 }
 
-var (
-	ErrReadingEnv = errors.New("error reading environment variables")
-	ErrValidation = errors.New("error validating settings")
-)
-
 func (r *Reader) Read() (s settings.Settings, err error) {
 	s, err = r.env.Read()
 	if err != nil {
-		return s, fmt.Errorf("%w: %s", ErrReadingEnv, err)
+		return s, fmt.Errorf("reading environment settings: %w", err)
 	}
 
 	s.SetDefaults()
 
 	err = s.Validate(r.validator)
 	if err != nil {
-		return s, fmt.Errorf("%w: %s", ErrValidation, err)
+		return s, fmt.Errorf("validating settings: %w", err)
 	}
 
 	return s, nil

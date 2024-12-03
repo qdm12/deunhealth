@@ -26,9 +26,7 @@ func NewClient() *Client {
 }
 
 var (
-	ErrParseHealthServerAddress = errors.New("cannot parse health server address")
-	ErrQuery                    = errors.New("cannot query health server")
-	ErrUnhealthy                = errors.New("unhealthy")
+	ErrUnhealthy = errors.New("unhealthy")
 )
 
 // Query sends an HTTP request to the other instance of
@@ -36,16 +34,16 @@ var (
 func (c *Client) Query(ctx context.Context, address string) error {
 	_, port, err := net.SplitHostPort(address)
 	if err != nil {
-		return fmt.Errorf("%w: %s: %s", ErrParseHealthServerAddress, address, err)
+		return fmt.Errorf("parsing health server address: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://127.0.0.1:"+port, nil)
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrQuery, err)
+		return fmt.Errorf("querying health server: %w", err)
 	}
 	resp, err := c.Do(req)
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrQuery, err)
+		return fmt.Errorf("querying health server: %w", err)
 	} else if resp.StatusCode == http.StatusOK {
 		return nil
 	}

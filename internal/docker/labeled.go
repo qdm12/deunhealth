@@ -2,14 +2,11 @@ package docker
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 )
-
-var ErrListContainers = errors.New("cannot list containers")
 
 func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
 	containers []Container, err error) {
@@ -23,7 +20,7 @@ func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
 		Filters: filtersArgs,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrListContainers, err)
+		return nil, fmt.Errorf("listing containers: %w", err)
 	}
 
 	containers = make([]Container, len(list))
