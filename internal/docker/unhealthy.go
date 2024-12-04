@@ -34,7 +34,8 @@ func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []Container, err
 	return unhealthies, nil
 }
 
-func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Container, crashed chan<- error) {
+func (d *Docker) StreamUnhealthy(ctx context.Context, ready chan<- struct{},
+	unhealthies chan<- Container, crashed chan<- error) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	filtersArgs.Add("label", "deunhealth.restart.on.unhealthy=true")
@@ -44,6 +45,8 @@ func (d *Docker) StreamUnhealthy(ctx context.Context, unhealthies chan<- Contain
 	messages, errors := d.client.Events(ctx, types.EventsOptions{
 		Filters: filtersArgs,
 	})
+
+	close(ready)
 
 	for {
 		select {

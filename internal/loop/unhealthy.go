@@ -53,7 +53,22 @@ func (l *Unhealthy) Stop() (err error) {
 func (l *Unhealthy) run(ctx context.Context, ready chan<- struct{},
 	done chan<- struct{}, runError chan<- error) {
 	defer close(done)
-	close(ready)
+
+	streamReady := make(chan struct{})
+	unhealthies := make(chan docker.Container)
+	unhealthyStreamCrashed := make(chan error)
+
+	go l.docker.StreamUnhealthy(ctx, streamReady, unhealthies, unhealthyStreamCrashed)
+
+	select {
+	case <-streamReady:
+	case err := <-unhealthyStreamCrashed:
+		runError <- fmt.Errorf("stream crashed: %w", err)
+		return
+	case <-ctx.Done():
+		<-unhealthyStreamCrashed
+		return
+	}
 
 	existingUnhealthies, err := l.docker.GetUnhealthy(ctx)
 	if err != nil {
@@ -64,10 +79,7 @@ func (l *Unhealthy) run(ctx context.Context, ready chan<- struct{},
 		l.restartUnhealthy(ctx, unhealthy)
 	}
 
-	unhealthies := make(chan docker.Container)
-	unhealthyStreamCrashed := make(chan error)
-
-	go l.docker.StreamUnhealthy(ctx, unhealthies, unhealthyStreamCrashed)
+	close(ready)
 
 	for {
 		select {
