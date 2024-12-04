@@ -55,26 +55,37 @@ func (l *UnhealthyLoop) Stop() (err error) {
 func (l *UnhealthyLoop) run(ctx context.Context, ready chan<- struct{},
 	done chan<- struct{}, runError chan<- error) {
 	defer close(done)
-	close(ready)
 
 	healthMonitorLabels := []string{"deunhealth.restart.on.unhealthy=true"}
+
+	streamReady := make(chan struct{})
+
+	healthMonitored := make(chan docker.Container)
+	healthStreamCrashed := make(chan error)
+
+	go l.docker.StreamLabeled(ctx, streamReady, healthMonitorLabels,
+		healthMonitored, healthStreamCrashed)
+
+	select {
+	case <-streamReady:
+	case err := <-healthStreamCrashed:
+		runError <- fmt.Errorf("stream crashed: %w", err)
+		return
+	case <-ctx.Done():
+		<-healthStreamCrashed
+		return
+	}
+
 	onUnhealthyContainers, err := l.docker.GetLabeled(ctx, healthMonitorLabels)
 	if err != nil {
 		runError <- fmt.Errorf("getting health monitored containers: %w", err)
 		return
 	}
 
-	containerNames := make([]string, len(onUnhealthyContainers))
-	for i, container := range onUnhealthyContainers {
-		l.monitoredIDs[container.ID] = struct{}{}
-		containerNames[i] = container.Name
-	}
-	logContainerNames(l.logger, containerNames)
+	l.setAsMonitored(onUnhealthyContainers)
+	l.logContainerNames(onUnhealthyContainers)
 
-	healthMonitored := make(chan docker.Container)
-	healthStreamCrashed := make(chan error)
-
-	go l.docker.StreamLabeled(ctx, healthMonitorLabels, healthMonitored, healthStreamCrashed)
+	close(ready)
 
 	for {
 		select {
@@ -98,15 +109,25 @@ func (l *UnhealthyLoop) run(ctx context.Context, ready chan<- struct{},
 	}
 }
 
-func logContainerNames(logger Logger, containerNames []string) {
-	switch len(containerNames) {
+func (l *UnhealthyLoop) setAsMonitored(containers []docker.Container) {
+	for _, container := range containers {
+		l.monitoredIDs[container.ID] = struct{}{}
+	}
+}
+
+func (l *UnhealthyLoop) logContainerNames(containers []docker.Container) {
+	switch len(containers) {
 	case 0:
-		logger.Infof("No container found to restart when becoming unhealthy")
+		l.logger.Infof("No container found to restart when becoming unhealthy")
 	case 1:
-		logger.Infof("Monitoring container %s to restart when becoming unhealthy",
-			containerNames[0])
+		l.logger.Infof("Monitoring container %s to restart when becoming unhealthy",
+			containers[0].Name)
 	default:
-		logger.Infof("Monitoring containers %s to restart when becoming unhealthy",
+		containerNames := make([]string, len(containers))
+		for i, container := range containers {
+			containerNames[i] = container.Name
+		}
+		l.logger.Infof("Monitoring containers %s to restart when becoming unhealthy",
 			helpers.BuildEnum(containerNames))
 	}
 }

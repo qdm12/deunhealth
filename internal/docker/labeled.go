@@ -37,8 +37,8 @@ func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
 	return containers, nil
 }
 
-func (d *Docker) StreamLabeled(ctx context.Context, labels []string,
-	containers chan<- Container, crashed chan<- error) {
+func (d *Docker) StreamLabeled(ctx context.Context, ready chan<- struct{},
+	labels []string, containers chan<- Container, crashed chan<- error) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	for _, label := range labels {
@@ -49,6 +49,8 @@ func (d *Docker) StreamLabeled(ctx context.Context, labels []string,
 	messages, errors := d.client.Events(ctx, types.EventsOptions{
 		Filters: filtersArgs,
 	})
+
+	close(ready)
 
 	for {
 		select {
@@ -72,6 +74,8 @@ func (d *Docker) StreamLabeled(ctx context.Context, labels []string,
 				Image: extractImageFromActor(message.Actor),
 			}
 
+			// Note the messages channel is blocking and will wait for us
+			// to consume the message before sending the next message.
 			select {
 			case containers <- container:
 			case <-ctx.Done(): // do not block
