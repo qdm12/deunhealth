@@ -53,7 +53,8 @@ func (l *UnhealthyLoop) Stop() (err error) {
 }
 
 func (l *UnhealthyLoop) run(ctx context.Context, ready chan<- struct{},
-	done chan<- struct{}, runError chan<- error) {
+	done chan<- struct{}, runError chan<- error,
+) {
 	defer close(done)
 
 	healthMonitorLabels := []string{"deunhealth.restart.on.unhealthy=true"}

@@ -36,6 +36,7 @@ func (s *Settings) Validate() (err error) {
 
 	return nil
 }
+
 func (s *Settings) Read(r *reader.Reader) {
 	s.Docker.read(r)
 	s.Health.Read(r)

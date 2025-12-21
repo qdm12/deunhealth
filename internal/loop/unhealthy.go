@@ -51,7 +51,8 @@ func (l *Unhealthy) Stop() (err error) {
 }
 
 func (l *Unhealthy) run(ctx context.Context, ready chan<- struct{},
-	done chan<- struct{}, runError chan<- error) {
+	done chan<- struct{}, runError chan<- error,
+) {
 	defer close(done)
 
 	streamReady := make(chan struct{})

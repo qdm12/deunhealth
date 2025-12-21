@@ -5,7 +5,8 @@ import (
 )
 
 func NewServer(address string, logger Logger, healthcheck func() error) (
-	server *httpserver.Server, err error) {
+	server *httpserver.Server, err error,
+) {
 	handler := newHandler(healthcheck)
 	return httpserver.New(httpserver.Settings{
 		Handler: handler,

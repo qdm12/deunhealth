@@ -76,7 +76,8 @@ func main() {
 }
 
 func _main(ctx context.Context, buildInfo models.BuildInformation,
-	args []string, logger log.LoggerInterface, reader *reader.Reader) (err error) {
+	args []string, logger log.LoggerInterface, reader *reader.Reader,
+) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if health.IsClientMode(args) {
@@ -126,7 +127,8 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 }
 
 func runHealthClient(ctx context.Context,
-	configReader *reader.Reader) (err error) {
+	configReader *reader.Reader,
+) (err error) {
 	client := health.NewClient()
 
 	var settings config.Health
@@ -162,7 +164,8 @@ func splashLines(buildInfo models.BuildInformation) {
 }
 
 func setupAndRunServices(ctx context.Context,
-	services []goservices.Service) (err error) {
+	services []goservices.Service,
+) (err error) {
 	group, err := goservices.NewGroup(goservices.GroupSettings{
 		Services: services,
 	})
