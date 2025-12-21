@@ -5,7 +5,7 @@ import (
 )
 
 type Docker struct {
-	client client.CommonAPIClient
+	client client.APIClient
 }
 
 func New(dockerHost string) (d *Docker, err error) {

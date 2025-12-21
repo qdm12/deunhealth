@@ -4,19 +4,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 )
 
 func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
-	containers []Container, err error) {
+	containers []Container, err error,
+) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	for _, label := range labels {
 		filtersArgs.Add("label", label)
 	}
 
-	list, err := d.client.ContainerList(ctx, types.ContainerListOptions{
+	list, err := d.client.ContainerList(ctx, container.ListOptions{
 		Filters: filtersArgs,
 	})
 	if err != nil {
@@ -38,7 +40,8 @@ func (d *Docker) GetLabeled(ctx context.Context, labels []string) (
 }
 
 func (d *Docker) StreamLabeled(ctx context.Context, ready chan<- struct{},
-	labels []string, containers chan<- Container, crashed chan<- error) {
+	labels []string, containers chan<- Container, crashed chan<- error,
+) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	for _, label := range labels {
@@ -46,7 +49,7 @@ func (d *Docker) StreamLabeled(ctx context.Context, ready chan<- struct{},
 	}
 
 	// See https://github.com/moby/moby/blob/deda3d4933d3c0bd57f2cef672da5d28fc653706/client/events.go
-	messages, errors := d.client.Events(ctx, types.EventsOptions{
+	messages, errors := d.client.Events(ctx, events.ListOptions{
 		Filters: filtersArgs,
 	})
 
@@ -69,7 +72,7 @@ func (d *Docker) StreamLabeled(ctx context.Context, ready chan<- struct{},
 			}
 
 			container := Container{
-				ID:    message.ID,
+				ID:    message.Actor.ID,
 				Name:  extractNameFromActor(message.Actor),
 				Image: extractImageFromActor(message.Actor),
 			}

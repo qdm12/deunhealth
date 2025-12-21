@@ -3,11 +3,11 @@ package docker
 import (
 	"strings"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 )
 
-func extractName(container types.Container) (name string) {
+func extractName(container container.Summary) (name string) {
 	name = container.ID
 	for _, containerName := range container.Names {
 		if containerName != "" {

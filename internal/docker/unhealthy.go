@@ -3,7 +3,8 @@ package docker
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 )
 
@@ -13,10 +14,9 @@ func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []Container, err
 	filtersArgs.Add("label", "deunhealth.restart.on.unhealthy=true")
 	filtersArgs.Add("health", "unhealthy")
 
-	containers, err := d.client.ContainerList(ctx, types.ContainerListOptions{
+	containers, err := d.client.ContainerList(ctx, container.ListOptions{
 		Filters: filtersArgs,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -35,14 +35,15 @@ func (d *Docker) GetUnhealthy(ctx context.Context) (unhealthies []Container, err
 }
 
 func (d *Docker) StreamUnhealthy(ctx context.Context, ready chan<- struct{},
-	unhealthies chan<- Container, crashed chan<- error) {
+	unhealthies chan<- Container, crashed chan<- error,
+) {
 	// See https://docs.docker.com/engine/reference/commandline/ps/#filtering
 	filtersArgs := filters.NewArgs()
 	filtersArgs.Add("label", "deunhealth.restart.on.unhealthy=true")
 	filtersArgs.Add("health", "unhealthy")
 
 	// See https://github.com/moby/moby/blob/deda3d4933d3c0bd57f2cef672da5d28fc653706/client/events.go
-	messages, errors := d.client.Events(ctx, types.EventsOptions{
+	messages, errors := d.client.Events(ctx, events.ListOptions{
 		Filters: filtersArgs,
 	})
 
