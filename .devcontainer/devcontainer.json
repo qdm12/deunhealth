@@ -99,7 +99,10 @@
                 "gopls": {
                     "usePlaceholders": false,
                     "staticcheck": true,
-                    "formatting.gofumpt": true
+                    "formatting.gofumpt": true,
+                    "ui.diagnostic.analyses": {
+                        "ST1000": false
+                    }
                 },
                 "remote.extensionKind": {
                     "ms-azuretools.vscode-docker": "workspace"
