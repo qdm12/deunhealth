@@ -60,7 +60,7 @@ Restart your unhealthy containers safely
 | Environment variable | Flag | Default | Possible values | Description |
 | --- | --- | --- | --- | --- |
 | `DOCKER_HOST` | `--docker-host` | Default Docker socket location | Docker host value | Docker host value such as `unix:///var/run/docker.sock` or `tcp://socket-proxy:2375` |
-| `LOG_LEVEL` | `--log-level` | `info` | `debug`, `info`, `warning`, `error` | Logging level |
+| `LOG_LEVEL` | `--log-level` | `info` | `debug`, `info`, `warn`, `error` | Logging level |
 | `HEALTH_SERVER_ADDRESS` | `--health-server-address` | `127.0.0.1:9999` | Valid address | Internal health http server listening address. Nothing to do with restarting unhealthy containers. |
 | `TZ` | N/A | `America/Montreal` | *string* | Timezone |
 
